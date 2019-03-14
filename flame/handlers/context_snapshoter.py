@@ -2,13 +2,13 @@ import os
 import torch
 
 from flame._utils import check
-from flame import working_directory
+from flame import output_directory
 from flame.handlers.handler import Handler
 from flame.engine import Engine, BaseContext, Event
 
 
 class ContextSnapshot(Handler):
-    def __init__(self, name, excute_if, store_directory=working_directory,
+    def __init__(self, name, excute_if, store_directory=output_directory,
                  prefix="context", exclude=True, excute_event=Event.PHASE_COMPLETED):
         super(ContextSnapshot, self).__init__(name)
         self.excute_if = check(excute_if, "excute_if", None, lambda f: callable(f))

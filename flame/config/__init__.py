@@ -6,23 +6,24 @@ import pyhocon
 __all__ = [
     "get_args",
     "get_hocon_conf",
-    "get_working_directory"
+    "get_output_directory"
 ]
 
 
-def get_args(argv):
+def get_args(argv) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="train a network")
     parser.add_argument("-c", "--config", type=str, nargs='?', help="the path to config file.", default=None,
                         required=False)
-    parser.add_argument("-e", "--experiment", type=str, nargs='?', help="the path to store experiment files.",
+    parser.add_argument("-o", "--output_directory", type=str, nargs='?', help="the path to store experiment files.",
                         default="!default",
                         required=False)
     parser.add_argument("-d", "--debug", action="store_true", help="the flag for debug mode.", default=False)
 
-    return parser.parse_known_args(argv)
+    args, _ = parser.parse_known_args(argv)
+    return args
 
 
-def get_hocon_conf(commandline_arg):
+def get_hocon_conf(commandline_arg: str) -> pyhocon.config_tree.ConfigTree:
     if commandline_arg is None:
         conf = None
     else:
@@ -30,17 +31,17 @@ def get_hocon_conf(commandline_arg):
     return conf
 
 
-def get_working_directory(commandline_arg, debug):
+def get_output_directory(commandline_arg: str, debug: bool) -> str:
     if commandline_arg is None:
         timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         if debug:
-            working_directory = os.path.join("experiments", "{}_debug".format(timestamp))
+            output_directory = os.path.join("output", "{}_debug".format(timestamp))
         else:
-            working_directory = os.path.join("experiments", timestamp)
+            output_directory = os.path.join("output", timestamp)
     else:
         if commandline_arg == "!default":
-            working_directory = None
+            output_directory = None
         else:
-            working_directory = commandline_arg
+            output_directory = commandline_arg
 
-    return working_directory
+    return output_directory
