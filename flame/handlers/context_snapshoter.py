@@ -29,5 +29,5 @@ class ContextSnapshot(Handler):
             self.last_save = save_path
 
     def attach(self, engine: Engine):
-        engine.ctx.plugins[self.excute_event] = self
+        engine.ctx.plugins[self.name] = self
         engine.add_event_handler(self.excute_event, self.excute)
