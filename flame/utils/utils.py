@@ -8,6 +8,7 @@ import typing
 
 import torch
 import flame
+import pyhocon
 
 
 class FileHasher(object):
@@ -77,10 +78,17 @@ def get_layer_by_unique_name(module: torch.nn.Module, unique_name: str) -> torch
         )
 
 
-def create_code_snapshot(include_suffix: typing.List[str] = (".py",),
+def create_code_snapshot(name: str = "code-snapshot",
+                         include_suffix: typing.List[str] = (".py",),
                          source_directory: str = os.getcwd(),
-                         store_directory: str = flame.output_directory) -> None:
-    with zipfile.ZipFile(os.path.join(store_directory, "code-snapshot.zip"), "w") as f:
+                         store_directory: str = flame.output_directory,
+                         hocon: pyhocon.ConfigTree = flame.hocon) -> None:
+    with zipfile.ZipFile(os.path.join(store_directory, "{}.zip".format(name)), "w") as f:
         for suffix in include_suffix:
             for file in glob.glob("**/*{}".format(suffix), recursive=True):
-                f.write(file, os.path.join("code-snapshot", file))
+                f.write(file, os.path.join(name, file))
+        if hocon is not None:
+            f.writestr(
+                os.path.join(name, "config", "default.hocon"),
+                pyhocon.HOCONConverter.to_hocon(hocon, indent=4)
+            )
