@@ -1,4 +1,5 @@
 import time
+import typing
 from collections import defaultdict
 from collections import OrderedDict
 
@@ -17,7 +18,7 @@ class Timer(object):
         self.end = None
         self.record = OrderedDict()
 
-    def mark(self, name=None):
+    def mark(self, name=None)->float:
         self.end = time.perf_counter()
         interval = self.end - self.start
         self.start = self.end
@@ -40,7 +41,7 @@ class Engine(object):
 
         self._epoch_flow_control = None
 
-    def iter_func(self, phase):
+    def iter_func(self, phase: Phase):
 
         def decorator(f):
             self._iter_funcs[phase] = f
@@ -48,7 +49,7 @@ class Engine(object):
 
         return decorator
 
-    def on(self, event):
+    def on(self, event: Event):
 
         def decorator(f):
             self.add_event_handler(event, f)
@@ -64,19 +65,19 @@ class Engine(object):
 
         return decorator
 
-    def stop_engine(self):
+    def stop_engine(self) -> typing.NoReturn:
         raise EngineStopException()
 
-    def skip_epoch(self):
+    def skip_epoch(self) -> typing.NoReturn:
         raise EpochStopException()
 
-    def skip_phase(self):
+    def skip_phase(self) -> typing.NoReturn:
         raise PhaseStopException()
 
-    def skip_iter(self):
+    def skip_iter(self) -> typing.NoReturn:
         raise IterationStopException()
 
-    def run(self):
+    def run(self) -> None:
         try:
             self._trigger_event(Event.ENGINE_STARTED)
             self.run_epoch()
@@ -85,7 +86,7 @@ class Engine(object):
         finally:
             self._trigger_event(Event.ENGINE_COMPLETED)
 
-    def run_epoch(self):
+    def run_epoch(self) -> None:
         try:
             while self.ctx.epoch < self.ctx.max_epoch:
                 self.ctx.epoch += 1
@@ -96,7 +97,7 @@ class Engine(object):
         finally:
             self._trigger_event(Event.EPOCH_COMPLETED)
 
-    def run_phase(self, phase: Phase):
+    def run_phase(self, phase: Phase) -> None:
         if not self.ctx.is_register_phase(phase):
             raise ValueError("The engine({}) fails to run the phase({}) because it is not registered."
                              .format(hex(id(self)), phase.name))
@@ -130,7 +131,7 @@ class Engine(object):
         finally:
             self._trigger_event(Event.PHASE_COMPLETED)
 
-    def run_iter(self, phase: Phase):
+    def run_iter(self, phase: Phase) -> None:
         try:
             self.ctx.iteration += 1
             self._trigger_event(Event.ITER_STARTED)
@@ -141,10 +142,10 @@ class Engine(object):
         finally:
             self._trigger_event(Event.ITER_COMPLETED)
 
-    def add_event_handler(self, event: Event, *handlers):
+    def add_event_handler(self, event: Event, *handlers) -> None:
         self._event_handlers[event] += handlers
 
-    def _trigger_event(self, event: Event):
+    def _trigger_event(self, event: Event) -> None:
         handlers = self._event_handlers.get(event)
         if handlers is not None:
             for handler in handlers:

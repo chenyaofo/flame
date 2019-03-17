@@ -5,7 +5,7 @@ from flame.engine import Engine
 
 
 class Handler(object):
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = check(name, "name", str)
 
     @abstractmethod

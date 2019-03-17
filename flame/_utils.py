@@ -1,4 +1,5 @@
 import sys
+import typing
 from IPython.core import ultratb
 
 
@@ -20,7 +21,11 @@ class DebugExceptionHook(object):
         return self.instance(exc_type, exc_value, traceback)
 
 
-def check(value, name, declared_type=None, condition=None, message=None):
+T = typing.TypeVar("T")
+
+
+def check(value: T, name: str, declared_type: typing.Any = None,
+          condition: typing.Optional[typing.Callable[[T], bool]] = None, message: typing.Optional[str] = None) -> T:
     if declared_type is not None:
         if not isinstance(value, declared_type):
             raise TypeError("The parameter {} should be {}, but got {}."

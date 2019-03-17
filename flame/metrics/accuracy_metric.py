@@ -1,4 +1,5 @@
 import torch
+import typing
 
 from .metric import Metric
 from flame.engine import Engine, Event, BaseContext
@@ -16,8 +17,9 @@ class Accuracy(object):
 
 
 class AccuracyMetric(Metric):
-    def __init__(self, name, topk=(1,), grad_enabled=False, context_map=None,
-                 reset_event=Event.PHASE_STARTED, update_event=Event.ITER_COMPLETED):
+    def __init__(self, name: str, topk: typing.Iterable[int] = (1,), grad_enabled: bool = False,
+                 context_map: typing.Callable[[BaseContext], typing.Any] = None,
+                 reset_event: Event = Event.PHASE_STARTED, update_event: Event = Event.ITER_COMPLETED):
         super(AccuracyMetric, self).__init__(name, grad_enabled, context_map, reset_event, update_event, True)
         topk = check(topk, "topk", None, lambda topk: len(topk) == len(set(topk)),
                      "The parameter topk must not contain repeating element")
@@ -27,10 +29,10 @@ class AccuracyMetric(Metric):
 
         self.reset()
 
-    def reset(self, *args, **kwargs):
+    def reset(self, *args, **kwargs) -> None:
         self.accuracies = [Accuracy(rate=0.0, n_correct=0, n_total=0) for _ in self.topk]
 
-    def update(self, targets, outputs):
+    def update(self, targets, outputs) -> None:
         with torch.set_grad_enabled(self.grad_enabled):
             maxk = max(self.topk)
             batch_size = targets.size(0)
@@ -50,5 +52,5 @@ class AccuracyMetric(Metric):
     def value(self):
         return self
 
-    def __getitem__(self, i):
+    def __getitem__(self, i) -> Accuracy:
         return self.accuracies[self.topk.index(i)]

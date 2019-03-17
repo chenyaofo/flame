@@ -8,7 +8,7 @@ class Phase(object):
         self._loader = loader
 
     @property
-    def name(self):
+    def name(self) ->str:
         return self._name
 
     @property
@@ -16,7 +16,7 @@ class Phase(object):
         return self._training
 
     @property
-    def loader(self):
+    def loader(self)->DataLoader:
         return self._loader
 
     def __eq__(self, other):

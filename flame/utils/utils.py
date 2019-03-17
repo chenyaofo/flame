@@ -1,16 +1,22 @@
+import os
+import glob
 import pathlib
 import hashlib
+import zipfile
+
+import typing
 
 import torch
+import flame
 
 
 class FileHasher(object):
-    def __init__(self, algorithm="md5"):
+    def __init__(self, algorithm: str = "md5"):
         if not hasattr(hashlib, algorithm):
             raise Exception("Not support such algorithm().".format(algorithm))
         self.algorithm = getattr(hashlib, algorithm)
 
-    def __call__(self, filename):
+    def __call__(self, filename: str):
         hasher = self.algorithm()
         with open(filename, "rb") as f:
             for chunk in iter(lambda: f.read(8192), b""):
@@ -18,9 +24,7 @@ class FileHasher(object):
         return hasher.hexdigest()
 
 
-# follow the statement on
-# https://pytorch.org/docs/stable/model_zoo.html#torch.utils.model_zoo.load_url
-def save_model_with_hash_suffix(state_dict, path, hash_algorithm="sha256", suffix_length=8):
+def save_model_with_hash_suffix(state_dict, path: str, hash_algorithm="sha256", suffix_length=8) -> None:
     '''Save the state_dict with hash suffix.
 
     Example:
@@ -46,7 +50,7 @@ def save_model_with_hash_suffix(state_dict, path, hash_algorithm="sha256", suffi
     tmp_pt.rename(dst)
 
 
-def replace_layer_by_unique_name(module, unique_name, layer):
+def replace_layer_by_unique_name(module: torch.nn.Module, unique_name: str, layer: torch.nn.Module) -> None:
     if unique_name == "":
         return
     unique_names = unique_name.split(".")
@@ -60,7 +64,7 @@ def replace_layer_by_unique_name(module, unique_name, layer):
         )
 
 
-def get_layer_by_unique_name(module, unique_name):
+def get_layer_by_unique_name(module: torch.nn.Module, unique_name: str) -> torch.nn.Module:
     if unique_name == "":
         return module
     unique_names = unique_name.split(".")
@@ -71,3 +75,12 @@ def get_layer_by_unique_name(module, unique_name):
             module._modules[unique_names[0]],
             ".".join(unique_names[1:]),
         )
+
+
+def create_code_snapshot(include_suffix: typing.List[str] = (".py",),
+                         source_directory: str = os.getcwd(),
+                         store_directory: str = flame.output_directory) -> None:
+    with zipfile.ZipFile(os.path.join(store_directory, "code-snapshot.zip"), "w") as f:
+        for suffix in include_suffix:
+            for file in glob.glob("**/*{}".format(suffix), recursive=True):
+                f.write(file, os.path.join("code-snapshot", file))

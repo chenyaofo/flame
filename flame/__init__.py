@@ -28,6 +28,8 @@ debug = args.debug
 
 if output_directory is not None:
     os.makedirs(output_directory, exist_ok=False)
+    with open(os.path.join(output_directory, ".flame")) as f:
+        f.write(".flame")
 
 logger = get_logger("flame", output_directory, "default.log", debug)
 
