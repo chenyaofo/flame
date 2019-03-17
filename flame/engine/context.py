@@ -1,5 +1,5 @@
 from functools import partial
-from dataclasses import dataclass, field
+from dataclasses import dataclass, is_dataclass, fields, asdict, Field, MISSING
 
 import torch
 
@@ -8,18 +8,30 @@ from flame.engine.phase import Phase
 context = partial(dataclass, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
 
 
+def context_field(*, default=MISSING, default_factory=MISSING,
+                  init: bool = True, repr: bool = True, hash: bool = None, compare: bool = True,
+                  requierd_serialization: bool = False, metadata: dict = None):
+    if default is not MISSING and default_factory is not MISSING:
+        raise ValueError('cannot specify both default and default_factory')
+    if metadata is not None:
+        return Field(default, default_factory, init, repr, hash, compare,
+                     metadata.update({"requierd_serialization": requierd_serialization}))
+    else:
+        return Field(default, default_factory, init, repr, hash, compare,
+                     metadata={"requierd_serialization": requierd_serialization})
+
+
 @context
 class BaseContext:
-    epoch: int = field(default=0)
-    max_epoch: int = field(default=None)
-    phase: Phase = field(default=None)
-    iteration: int = field(default=0)
-    max_iteration: int = field(default=None)
-    net: torch.nn.Module = field(default=None)
-    device: torch.device = field(default=None)
-    entrypoints: dict = field(default_factory=dict)
+    epoch: int = context_field(default=0, requierd_serialization=True)
+    max_epoch: int = context_field(default=None, requierd_serialization=True)
+    phase: Phase = context_field(default=None, requierd_serialization=True)
+    iteration: int = context_field(default=0, requierd_serialization=True)
+    max_iteration: int = context_field(default=None, requierd_serialization=True)
+    device: torch.device = context_field(default=None, requierd_serialization=False)
+    entrypoints: dict = context_field(default_factory=dict, requierd_serialization=True)
 
-    inputs: object = field(default=None)
+    inputs: object = context_field(default=None)
 
     def set_infinity_epoch(self):
         self.max_epoch = float("inf")
@@ -53,8 +65,31 @@ class BaseContext:
     def is_last_iteration(self):
         return self.iteration == self.max_iteration
 
-    def state_dict(self):
-        pass
+    def state_dict(self) -> dict:
+        context_fields = fields(self)
+        context_dict = asdict(self)
 
-    def load_state_dict(self):
-        pass
+        state_dict = dict()
+
+        for field in context_fields:
+            name = field.name
+            requierd_serialization = field.metadata["requierd_serialization"]
+            if requierd_serialization:
+                if hasattr(context_dict[name], "state_dict"):
+                    state_dict[name] = context_dict[name].state_dict()
+                else:
+                    state_dict[name] = context_dict[name]
+        return state_dict
+
+    def load_state_dict(self, state_dict: dict):
+        context_fields = fields(self)
+        context_dict = self.__dict__
+
+        for field in context_fields:
+            name = field.name
+            requierd_serialization = field.metadata["requierd_serialization"]
+            if requierd_serialization:
+                if hasattr(context_dict[name], "load_state_dict"):
+                    context_dict[name].load_state_dict(state_dict[name])
+                else:
+                    context_dict[name] = state_dict[name]
