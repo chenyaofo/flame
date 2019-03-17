@@ -102,10 +102,6 @@ class Engine(object):
             raise ValueError("The engine({}) fails to run the phase({}) because it is not registered."
                              .format(hex(id(self)), phase.name))
         self.ctx.phase = phase
-        if phase.training is not None:
-            for _, module in self.ctx.__dict__.items():
-                if isinstance(module, nn.Module):
-                    module.train(mode=phase.training)
 
         loader = phase.loader
         self.ctx.iteration = 0
