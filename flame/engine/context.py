@@ -4,6 +4,7 @@ from dataclasses import dataclass, is_dataclass, fields, asdict, Field, MISSING
 import torch
 
 from flame.engine.phase import Phase
+from .utils import Timer
 
 context = partial(dataclass, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
 
@@ -30,6 +31,8 @@ class BaseContext:
     max_iteration: int = context_field(default=None, requierd_serialization=True)
     device: torch.device = context_field(default=None, requierd_serialization=False)
     entrypoints: dict = context_field(default_factory=dict, requierd_serialization=True)
+
+    timer: Timer = context_field(default=None, requierd_serialization=False)
 
     inputs: object = context_field(default=None)
 
