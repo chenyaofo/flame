@@ -3,7 +3,8 @@ from dataclasses import dataclass, is_dataclass, fields, asdict, Field, MISSING
 
 import torch
 
-from flame.engine import Phase, Scope
+from flame.engine.phase import Phase
+from flame.engine.scope import Scope
 from .utils import Timer
 
 context = partial(dataclass, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
