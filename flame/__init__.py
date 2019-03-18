@@ -22,9 +22,7 @@ from ._utils import DebugExceptionHook
 
 args = get_args(sys.argv)
 output_directory = get_output_directory(args.output_directory, args.debug)
-hocon = get_hocon_conf(args.config)
 
-replace_hocon_item(hocon, args.replace)
 
 debug = args.debug
 
@@ -33,10 +31,23 @@ if output_directory is not None:
     with open(os.path.join(output_directory, ".flame"), "w") as f:
         f.write(".flame")
 
+
 logger = get_logger("flame", output_directory, "default.log", debug)
+
+if output_directory is not None:
+    logger.info("The default output directory is {}.".format(output_directory))
+
+if debug:
+    logger.debug("Flame is in debug mode.")
+
+hocon = get_hocon_conf(args.config)
+if hocon is not None:
+    logger.info("Initialize flame.hocon from {}.".format(args.config))
+replace_hocon_item(hocon, args.replace, logger)
 
 if debug:
     sys.excepthook = DebugExceptionHook(logger)
+    logger.debug("Install DebugExceptionHook({}) on sys.excepthook.".format(hex(id(sys.excepthook))))
 
 from . import engine
 from . import handlers

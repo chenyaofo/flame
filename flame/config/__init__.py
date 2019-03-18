@@ -47,7 +47,7 @@ def get_output_directory(commandline_arg: str, debug: bool) -> str:
     return output_directory
 
 
-def replace_hocon_item(hocon: pyhocon.ConfigTree, commandline_arg: str):
+def replace_hocon_item(hocon: pyhocon.ConfigTree, commandline_arg: str, logger=None):
     if commandline_arg is None:
         return
     for item in commandline_arg.split("&"):
@@ -58,5 +58,6 @@ def replace_hocon_item(hocon: pyhocon.ConfigTree, commandline_arg: str):
                 hocon.put(key, eval(value))
             else:
                 hocon.put(key, value)
+            logger.info("Replace hocon config item, {} = {} -> {}".format(key,old_value,value))
         except KeyError:
             raise KeyError("The key({}) is not defined in hocon config.".format(key))
