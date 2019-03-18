@@ -3,7 +3,7 @@ from dataclasses import dataclass, is_dataclass, fields, asdict, Field, MISSING
 
 import torch
 
-from flame.engine.phase import Phase
+from flame.engine import Phase, Scope
 from .utils import Timer
 
 context = partial(dataclass, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
@@ -11,15 +11,17 @@ context = partial(dataclass, init=True, repr=False, eq=False, order=False, unsaf
 
 def context_field(*, default=MISSING, default_factory=MISSING,
                   init: bool = True, repr: bool = True, hash: bool = None, compare: bool = True,
-                  requierd_serialization: bool = False, metadata: dict = None):
+                  scope: Scope = Scope.GLOBAL, requierd_serialization: bool = False, metadata: dict = None):
     if default is not MISSING and default_factory is not MISSING:
         raise ValueError('cannot specify both default and default_factory')
     if metadata is not None:
         return Field(default, default_factory, init, repr, hash, compare,
-                     metadata.update({"requierd_serialization": requierd_serialization}))
+                     metadata.update({"requierd_serialization": requierd_serialization,
+                                      "scope": scope.name}))
     else:
         return Field(default, default_factory, init, repr, hash, compare,
-                     metadata={"requierd_serialization": requierd_serialization})
+                     metadata={"requierd_serialization": requierd_serialization,
+                               "scope": scope.name})
 
 
 @context
@@ -96,3 +98,22 @@ class BaseContext:
                     context_dict[name].load_state_dict(state_dict[name])
                 else:
                     context_dict[name] = state_dict[name]
+
+    def _clean_variable(self,scope_name):
+        context_fields = fields(self)
+        context_dict = self.__dict__
+
+        for field in context_fields:
+            name = field.name
+            scope = field.metadata["scope"]
+            if scope == scope_name:
+                context_dict[name] = None
+
+    def clean_epoch_variable(self):
+        self._clean_variable(Scope.EPOCH.name)
+
+    def clean_phase_variable(self):
+        self._clean_variable(Scope.PHASE.name)
+
+    def clean_iteration_variable(self):
+        self._clean_variable(Scope.ITERATION.name)

@@ -83,6 +83,7 @@ class Engine(object):
             self.logger.debug("The epoch({}) is early stopped.".format(self.ctx.epoch))
         finally:
             self._trigger_event(Event.EPOCH_COMPLETED)
+            self.ctx.clean_epoch_variable()
 
     def run_phase(self, phase: Phase) -> None:
         if not self.ctx.is_register_phase(phase):
@@ -118,6 +119,7 @@ class Engine(object):
             self.logger.debug("The phase({}) is early stopped.".format(phase.name))
         finally:
             self._trigger_event(Event.PHASE_COMPLETED)
+            self.ctx.clean_phase_variable()
 
     def run_iter(self, phase: Phase) -> None:
         try:
@@ -129,6 +131,7 @@ class Engine(object):
             self.logger.debug("The iteration({}) is early stopped.".format(self.ctx.iteration))
         finally:
             self._trigger_event(Event.ITER_COMPLETED)
+            self.ctx.clean_iteration_variable()
 
     def add_event_handler(self, event: Event, *handlers) -> None:
         self._event_handlers[event] += handlers
