@@ -16,13 +16,15 @@ __all__ = [
 
 __version__ = "0.1.0-alpha0"
 
-from .config import get_args, get_hocon_conf, get_output_directory
+from .config import get_args, get_hocon_conf, get_output_directory, replace_hocon_item
 from .logging import get_logger
 from ._utils import DebugExceptionHook
 
 args = get_args(sys.argv)
 output_directory = get_output_directory(args.output_directory, args.debug)
 hocon = get_hocon_conf(args.config)
+
+replace_hocon_item(hocon, args.replace)
 
 debug = args.debug
 
