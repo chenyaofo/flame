@@ -27,7 +27,6 @@ class Engine(object):
     def iter_func(self, phase: Phase, debug: bool = False):
 
         def decorator(f):
-            print("set {}, debug={}, f={}".format(phase, debug, f))
             self._iter_funcs[phase].set(debug, f)
             return f
 
