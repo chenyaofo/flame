@@ -11,6 +11,8 @@ import torch.nn
 import flame
 import pyhocon
 
+from flame._utils import create_code_snapshot as create_code_snapshot_impl
+
 
 def compute_file_hash(file, hash_algorithm="sha256"):
     hasher = getattr(hashlib, hash_algorithm)
@@ -77,14 +79,4 @@ def create_code_snapshot(name: str = "code-snapshot",
                          source_directory: str = os.getcwd(),
                          store_directory: str = flame.output_directory,
                          hocon: pyhocon.ConfigTree = flame.hocon) -> None:
-    if store_directory is None:
-        return
-    with zipfile.ZipFile(os.path.join(store_directory, "{}.zip".format(name)), "w") as f:
-        for suffix in include_suffix:
-            for file in glob.glob(os.path.join(source_directory, "**", "*{}".format(suffix)), recursive=True):
-                f.write(file, os.path.join(name, file))
-        if hocon is not None:
-            f.writestr(
-                os.path.join(name, "config", "default.hocon"),
-                pyhocon.HOCONConverter.to_hocon(hocon, indent=4)
-            )
+    create_code_snapshot_impl(name, include_suffix, source_directory, store_directory, hocon)
