@@ -1,5 +1,5 @@
 dataclasses
-setuptools
 pyhocon
-ipython
+prettytable
+setuptools
 torch>=0.4.0
