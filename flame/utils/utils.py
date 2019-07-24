@@ -77,9 +77,11 @@ def create_code_snapshot(name: str = "code-snapshot",
                          source_directory: str = os.getcwd(),
                          store_directory: str = flame.output_directory,
                          hocon: pyhocon.ConfigTree = flame.hocon) -> None:
+    if store_directory is None:
+        return
     with zipfile.ZipFile(os.path.join(store_directory, "{}.zip".format(name)), "w") as f:
         for suffix in include_suffix:
-            for file in glob.glob("**/*{}".format(suffix), recursive=True):
+            for file in glob.glob(os.path.join(source_directory, "**", "*{}".format(suffix)), recursive=True):
                 f.write(file, os.path.join(name, file))
         if hocon is not None:
             f.writestr(
