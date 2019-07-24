@@ -18,11 +18,10 @@ __version__ = "0.1.0-alpha0"
 
 from .config import get_args, get_hocon_conf, get_output_directory, replace_hocon_item
 from .logging import get_logger
-from ._utils import DebugExceptionHook
+from ._utils import LogExceptionHook
 
 args = get_args(sys.argv)
 output_directory = get_output_directory(args.output_directory, args.debug)
-
 
 debug = args.debug
 
@@ -30,7 +29,6 @@ if output_directory is not None:
     os.makedirs(output_directory, exist_ok=False)
     with open(os.path.join(output_directory, ".flame"), "w") as f:
         f.write(".flame")
-
 
 logger = get_logger("flame", output_directory, "default.log", debug)
 
@@ -45,9 +43,7 @@ if hocon is not None:
     logger.info("Initialize flame.hocon from {}.".format(args.config))
 replace_hocon_item(hocon, args.replace, logger)
 
-if debug:
-    sys.excepthook = DebugExceptionHook(logger)
-    logger.debug("Install DebugExceptionHook({}) on sys.excepthook.".format(hex(id(sys.excepthook))))
+sys.excepthook = LogExceptionHook(logger)
 
 from . import engine
 from . import handlers
