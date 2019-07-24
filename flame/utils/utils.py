@@ -7,22 +7,17 @@ import zipfile
 import typing
 
 import torch
+import torch.nn
 import flame
 import pyhocon
 
 
-class FileHasher(object):
-    def __init__(self, algorithm: str = "md5"):
-        if not hasattr(hashlib, algorithm):
-            raise Exception("Not support such algorithm().".format(algorithm))
-        self.algorithm = getattr(hashlib, algorithm)
-
-    def __call__(self, filename: str):
-        hasher = self.algorithm()
-        with open(filename, "rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                hasher.update(chunk)
-        return hasher.hexdigest()
+def compute_file_hash(file, hash_algorithm="sha256"):
+    hasher = getattr(hashlib, hash_algorithm)
+    with open(file, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
 
 
 def save_model_with_hash_suffix(state_dict, path: str, hash_algorithm="sha256", suffix_length=8) -> None:
@@ -44,8 +39,7 @@ def save_model_with_hash_suffix(state_dict, path: str, hash_algorithm="sha256", 
     dst = pathlib.Path(path)
     tmp_pt = dst.with_name("temporary").with_suffix(".pth")
     torch.save(state_dict, tmp_pt)
-    sha1_hash = FileHasher(hash_algorithm)
-    signature = sha1_hash(tmp_pt)[:suffix_length]
+    signature = compute_file_hash(tmp_pt, hash_algorithm)[:suffix_length]
     purename, extension = dst.stem, dst.suffix
     dst = dst.with_name("{}-{}".format(purename, signature)).with_suffix(extension)
     tmp_pt.rename(dst)
