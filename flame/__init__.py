@@ -14,7 +14,7 @@ __all__ = [
     "utils",
 ]
 
-__version__ = "0.1.0-alpha0"
+__version__ = "0.1.0-beta0"
 
 from ._utils import get_args, get_hocon_conf, get_output_directory, replace_hocon_item
 from ._utils import get_logger
