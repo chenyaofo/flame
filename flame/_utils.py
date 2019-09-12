@@ -56,6 +56,7 @@ def get_logger(name: str, output_directory: str, log_name: str, debug: str) -> l
     else:
         logger.setLevel(logging.INFO)
 
+    logger.propagate = False
     return logger
 
 
