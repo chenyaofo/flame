@@ -2,6 +2,7 @@ import os
 import glob
 import pathlib
 import hashlib
+import subprocess
 import zipfile
 
 import typing
@@ -80,3 +81,14 @@ def create_code_snapshot(name: str = "code-snapshot",
                          store_directory: str = flame.output_directory,
                          hocon: pyhocon.ConfigTree = flame.hocon) -> None:
     create_code_snapshot_impl(name, include_suffix, source_directory, store_directory, hocon)
+
+
+def get_last_commit_id():
+    try:
+        output = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode("utf-8")
+        output = output.strip()
+        return output
+    except subprocess.CalledProcessError as e:
+        out_bytes = e.output
+        code = e.returncode
+        return None
