@@ -1,4 +1,5 @@
 import os
+import random
 import glob
 import pathlib
 import hashlib
@@ -7,8 +8,9 @@ import zipfile
 
 import typing
 
+import numpy
 import torch
-import torch.nn
+import torch.nn as nn
 import flame
 import pyhocon
 
@@ -48,7 +50,7 @@ def save_model_with_hash_suffix(state_dict, path: str, hash_algorithm="sha256", 
     tmp_pt.rename(dst)
 
 
-def replace_layer_by_unique_name(module: torch.nn.Module, unique_name: str, layer: torch.nn.Module) -> None:
+def replace_layer_by_unique_name(module: nn.Module, unique_name: str, layer: nn.Module) -> None:
     if unique_name == "":
         return
     unique_names = unique_name.split(".")
@@ -62,7 +64,7 @@ def replace_layer_by_unique_name(module: torch.nn.Module, unique_name: str, laye
         )
 
 
-def get_layer_by_unique_name(module: torch.nn.Module, unique_name: str) -> torch.nn.Module:
+def get_layer_by_unique_name(module: nn.Module, unique_name: str) -> nn.Module:
     if unique_name == "":
         return module
     unique_names = unique_name.split(".")
@@ -92,3 +94,27 @@ def get_last_commit_id():
         out_bytes = e.output
         code = e.returncode
         return None
+
+
+def generate_random_from_system():
+    return int.from_bytes(os.urandom(2), byteorder="little", signed=False)
+
+
+def set_reproducible(seed=0):
+    '''
+    To ensure the reproducibility, refer to https://pytorch.org/docs/stable/notes/randomness.html.
+    Note that completely reproducible results are not guaranteed.
+    '''
+    random.seed(seed)
+    numpy.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def set_cudnn_auto_tune():
+    torch.backends.cudnn.benchmark = True
+
+
+def compute_nparam(module: nn.Module, skip_pattern):
+    return sum(map(lambda p: p.numel(), module.parameters()))
