@@ -29,15 +29,21 @@ def find_requirements(file_path):
         return f.read().splitlines()
 
 
-requirements = find_requirements("requirements.txt")
+requirements = [
+    'dataclasses',
+    'pyhocon',
+    'prettytable',
+    'torch>=0.4.0',
+]
 
 setup(
-    name="flame",
+    name="torch-flame",
     version=VERSION,
     description="A deep learning utility library for PyTorch",
     url="https://github.com/chenyaofo/flame",
     author="chenyaofo",
     author_email="chenyaofo@gmail.com",
     packages=find_packages(exclude=['test']),
+    package_data={'': ['requirements.txt']},
     install_requires=requirements,
 )
