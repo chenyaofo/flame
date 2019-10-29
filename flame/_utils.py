@@ -119,10 +119,10 @@ def replace_hocon_item(hocon: pyhocon.ConfigTree, commandline_arg: str, logger=N
 
 
 def create_code_snapshot(name: str,
-                          include_suffix: typing.List[str],
-                          source_directory: str,
-                          store_directory: str,
-                          hocon: pyhocon.ConfigTree) -> None:
+                         include_suffix: typing.List[str],
+                         source_directory: str,
+                         store_directory: str,
+                         hocon: pyhocon.ConfigTree) -> None:
     if store_directory is None:
         return
     with zipfile.ZipFile(os.path.join(store_directory, "{}.zip".format(name)), "w") as f:
