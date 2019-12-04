@@ -30,7 +30,6 @@ def find_requirements(file_path):
 
 
 requirements = [
-    'dataclasses',
     'pyhocon',
     'prettytable',
     'torch>=0.4.0',
