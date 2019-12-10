@@ -17,3 +17,5 @@ class TimeMetric(Metric):
     @property
     def value(self) -> float:
         return time.time() - self.start_time
+
+class 
